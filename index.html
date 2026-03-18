@@ -3,467 +3,746 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>GST Lookup</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <title>GST Lookup by PAN — Varma &amp; Varma</title>
   <link rel="icon" type="image/png" href="/firm-logo.png" />
+
+  <!-- Fonts: Cormorant Garamond + DM Sans + DM Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
   <style>
+    /* ─── Design tokens ─────────────────────────────────────── */
     :root {
-      --bg: #0a0a0f;
-      --surface: #111118;
-      --surface2: #18181f;
-      --border: #ffffff0f;
-      --border-active: #ffffff22;
-      --accent: #7c6dfa;
-      --accent2: #fa6d9f;
-      --text: #f0f0f8;
-      --muted: #6b6b85;
-      --success: #4ade80;
-      --error: #f87171;
-      --glow: 0 0 60px #7c6dfa22;
+      --bg:           #faf8f5;
+      --surface:      #ffffff;
+      --surface-sub:  #f5f1eb;
+      --border:       #e3dcd3;
+      --border-sub:   #ede8e0;
+      --text:         #1c1410;
+      --text-sub:     #6e6156;
+      --text-muted:   #afa395;
+      --accent:       #9a3324;
+      --accent-dim:   rgba(154, 51, 36, 0.08);
+      --accent-ring:  rgba(154, 51, 36, 0.2);
+      --success:      #3d9a5c;
+      --success-bg:   #f0fdf4;
+      --success-border: #bbf7d0;
+      --error:        #c93a2a;
+      --error-bg:     #fef2f0;
+      --error-border: #fecaca;
+      --info:         #2b6cb0;
+      --info-bg:      #eff6ff;
+      --info-border:  #bfdbfe;
+      --font-display: 'Cormorant Garamond', Georgia, serif;
+      --font-ui:      'DM Sans', ui-sans-serif, system-ui, sans-serif;
+      --font-data:    'DM Mono', ui-monospace, monospace;
+      --radius-sm:    0.375rem;
+      --radius:       0.5rem;
+      --radius-lg:    0.75rem;
+      --radius-xl:    1rem;
+      --shadow-sm:    0 1px 3px rgba(28,20,16,0.05), 0 1px 2px rgba(28,20,16,0.07);
+      --shadow:       0 2px 8px rgba(28,20,16,0.07), 0 1px 3px rgba(28,20,16,0.05);
+      --shadow-md:    0 4px 16px rgba(28,20,16,0.08), 0 2px 4px rgba(28,20,16,0.04);
+      --ease:         cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    /* ─── Dark mode ─────────────────────────────────────────── */
+    html.dark {
+      --bg:           #191919;
+      --surface:      #201d1a;
+      --surface-sub:  #272219;
+      --border:       #302620;
+      --border-sub:   #272219;
+      --text:         #f0ebe3;
+      --text-sub:     #8a7d70;
+      --text-muted:   #6e6156;
+      --accent:       #c9523c;
+      --accent-dim:   rgba(201, 82, 60, 0.12);
+      --accent-ring:  rgba(201, 82, 60, 0.25);
+      --success-bg:   rgba(61,154,92,0.1);
+      --success-border: rgba(61,154,92,0.25);
+      --error-bg:     rgba(201,58,42,0.1);
+      --error-border: rgba(201,58,42,0.25);
+      --info-bg:      rgba(43,108,176,0.1);
+      --info-border:  rgba(43,108,176,0.25);
+    }
+
+    /* ─── Reset ─────────────────────────────────────────────── */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     html { scroll-behavior: smooth; }
 
     body {
-      font-family: 'DM Sans', sans-serif;
+      font-family: var(--font-ui);
+      font-feature-settings: "ss01", "ss02";
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 48px 20px 80px;
-      position: relative;
-      overflow-x: hidden;
+      padding: 0 1.25rem 5rem;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
-    body::before {
+    /* Subtle paper grain */
+    body::after {
       content: '';
       position: fixed;
       inset: 0;
-      background:
-        radial-gradient(ellipse 80% 50% at 20% 10%, #7c6dfa14 0%, transparent 60%),
-        radial-gradient(ellipse 60% 40% at 80% 80%, #fa6d9f0e 0%, transparent 60%),
-        radial-gradient(ellipse 40% 40% at 50% 50%, #4f46e508 0%, transparent 70%);
       pointer-events: none;
-      z-index: 0;
+      z-index: 9999;
+      opacity: 0.025;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 200px 200px;
     }
 
-    .wrapper {
-      position: relative;
-      z-index: 1;
+    /* ─── Navigation bar ────────────────────────────────────── */
+    .nav {
       width: 100%;
       max-width: 680px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 0 0;
+      margin-bottom: 3rem;
     }
 
-    .header { margin-bottom: 48px; animation: fadeUp 0.6s ease both; }
+    .nav-brand {
+      display: flex;
+      flex-direction: column;
+      text-decoration: none;
+      gap: 0.2rem;
+    }
 
-    .badge {
+    .nav-brand-name {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 1.05rem;
+      color: var(--text);
+      letter-spacing: 0.01em;
+      line-height: 1;
+    }
+
+    .nav-brand-sub {
+      font-family: var(--font-data);
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .nav-back {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      background: #7c6dfa15;
-      border: 1px solid #7c6dfa30;
-      border-radius: 99px;
-      padding: 4px 12px;
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      color: var(--accent);
-      letter-spacing: 0.5px;
-      margin-bottom: 20px;
+      gap: 0.375rem;
+      font-family: var(--font-data);
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.15s ease;
     }
 
-    .badge::before {
-      content: '';
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--accent);
-      animation: pulse 2s infinite;
+    .nav-back:hover { color: var(--text-sub); }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
     }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 #7c6dfa66; }
-      50% { opacity: 0.6; box-shadow: 0 0 0 4px #7c6dfa00; }
-    }
-
-    h1 {
-      font-family: 'Syne', sans-serif;
-      font-size: clamp(32px, 5vw, 48px);
-      font-weight: 800;
-      line-height: 1.1;
-      letter-spacing: -1px;
-      background: linear-gradient(135deg, #f0f0f8 30%, #7c6dfa 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 12px;
-    }
-
-    .subtitle { font-size: 15px; color: var(--muted); line-height: 1.6; max-width: 480px; }
-
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      overflow: hidden;
-      box-shadow: 0 1px 0 0 #ffffff08 inset, var(--glow);
-      animation: fadeUp 0.6s 0.1s ease both;
-    }
-
-    .card-inner { padding: 32px; }
-
-    .tab-strip {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 4px;
-      margin-bottom: 28px;
-      gap: 4px;
-    }
-
-    .tab {
-      padding: 10px 16px;
+    .theme-toggle {
+      padding: 0.3rem;
       border: none;
-      border-radius: 9px;
       background: transparent;
-      color: var(--muted);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 13px;
-      font-weight: 500;
+      color: var(--text-muted);
       cursor: pointer;
-      transition: all 0.2s;
+      border-radius: 0.375rem;
+      transition: color 0.15s ease, background 0.15s ease;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
     }
 
-    .tab svg { opacity: 0.6; transition: opacity 0.2s; }
+    .theme-toggle:hover {
+      color: var(--text-sub);
+      background: var(--surface-sub);
+    }
+
+    /* ─── Wrapper ────────────────────────────────────────────── */
+    .wrapper {
+      width: 100%;
+      max-width: 640px;
+    }
+
+    /* ─── Header ─────────────────────────────────────────────── */
+    .header {
+      margin-bottom: 2.5rem;
+      animation: fadeUp 0.5s var(--ease) both;
+    }
+
+    .eyebrow {
+      font-family: var(--font-data);
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.875rem;
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+    }
+
+    .eyebrow::before {
+      content: '';
+      display: inline-block;
+      width: 1.5rem;
+      height: 1px;
+      background: var(--accent);
+      opacity: 0.6;
+    }
+
+    h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2.25rem, 6vw, 3rem);
+      font-weight: 600;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      margin-bottom: 0.875rem;
+    }
+
+    .subtitle {
+      font-size: 0.9375rem;
+      color: var(--text-sub);
+      line-height: 1.6;
+      max-width: 480px;
+    }
+
+    /* ─── Card ───────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      animation: fadeUp 0.5s 0.08s var(--ease) both;
+    }
+
+    .card-inner { padding: 2rem; }
+
+    @media (max-width: 480px) {
+      .card-inner { padding: 1.25rem; }
+    }
+
+    /* ─── Tab strip ──────────────────────────────────────────── */
+    .tab-strip {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1.75rem;
+      gap: 0;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: var(--font-ui);
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .tab svg { transition: opacity 0.15s ease; opacity: 0.5; }
+
+    .tab:hover {
+      color: var(--text-sub);
+    }
 
     .tab.active {
-      background: var(--surface);
-      color: var(--text);
-      box-shadow: 0 1px 8px #00000040, 0 0 0 1px #ffffff0a;
+      color: var(--accent);
+      border-bottom-color: var(--accent);
     }
 
     .tab.active svg { opacity: 1; }
 
+    /* ─── Tab panels ─────────────────────────────────────────── */
     .tab-panel { display: none; }
-    .tab-panel.active { display: block; animation: fadeIn 0.2s ease; }
+    .tab-panel.active {
+      display: block;
+      animation: fadeIn 0.18s ease;
+    }
 
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(3px); }
+      to   { opacity: 1; transform: none; }
+    }
 
+    /* ─── Field label ────────────────────────────────────────── */
     .field-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
+      font-family: var(--font-data);
+      font-size: 0.65rem;
       font-weight: 500;
-      color: var(--muted);
-      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      letter-spacing: 0.14em;
       text-transform: uppercase;
-      margin-bottom: 8px;
+      margin-bottom: 0.5rem;
       display: block;
     }
 
+    /* ─── Textarea ───────────────────────────────────────────── */
     textarea {
       width: 100%;
-      height: 200px;
-      background: var(--surface2);
+      height: 196px;
+      background: var(--surface-sub);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px;
-      font-family: 'DM Mono', monospace;
-      font-size: 13px;
+      border-radius: var(--radius-lg);
+      padding: 0.875rem 1rem;
+      font-family: var(--font-data);
+      font-size: 0.8125rem;
       color: var(--text);
       resize: vertical;
       outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
       line-height: 1.7;
     }
 
-    textarea::placeholder { color: var(--muted); opacity: 0.6; }
-    textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px #7c6dfa18; }
+    textarea::placeholder { color: var(--text-muted); }
 
+    textarea:focus {
+      border-color: rgba(154, 51, 36, 0.4);
+      box-shadow: 0 0 0 2px var(--accent-ring);
+    }
+
+    /* ─── Drop zone ──────────────────────────────────────────── */
     .drop-zone {
-      border: 1.5px dashed var(--border-active);
-      border-radius: 12px;
-      background: var(--surface2);
-      padding: 48px 32px;
+      border: 1.5px dashed var(--border);
+      border-radius: var(--radius-lg);
+      background: var(--surface-sub);
+      padding: 3rem 2rem;
       text-align: center;
       cursor: pointer;
-      transition: all 0.2s;
-      position: relative;
-      overflow: hidden;
+      transition: all 0.2s var(--ease);
     }
 
-    .drop-zone::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(ellipse 80% 60% at 50% 100%, #7c6dfa08, transparent);
-      pointer-events: none;
-    }
-
-    .drop-zone:hover, .drop-zone.dragover {
+    .drop-zone:hover,
+    .drop-zone.dragover {
       border-color: var(--accent);
-      background: #7c6dfa08;
+      background: var(--accent-dim);
     }
 
     .drop-zone input { display: none; }
 
     .drop-icon {
-      width: 48px; height: 48px;
-      background: #7c6dfa18;
-      border: 1px solid #7c6dfa30;
-      border-radius: 12px;
+      width: 44px;
+      height: 44px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(154, 51, 36, 0.15);
+      border-radius: var(--radius-lg);
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 0 auto 16px;
+      margin: 0 auto 1rem;
     }
 
     .drop-zone h3 {
-      font-family: 'Syne', sans-serif;
-      font-size: 15px;
-      font-weight: 600;
+      font-family: var(--font-ui);
+      font-size: 0.9375rem;
+      font-weight: 500;
       color: var(--text);
-      margin-bottom: 6px;
+      margin-bottom: 0.375rem;
     }
 
-    .drop-zone p { font-size: 13px; color: var(--muted); line-height: 1.5; }
+    .drop-zone p {
+      font-size: 0.8125rem;
+      color: var(--text-sub);
+      line-height: 1.55;
+    }
+
+    .drop-zone strong { color: var(--text); font-weight: 500; }
 
     .file-chip {
-      margin-top: 14px;
+      margin-top: 1rem;
       display: none;
       align-items: center;
-      gap: 8px;
-      background: #4ade8018;
-      border: 1px solid #4ade8030;
+      gap: 0.5rem;
+      background: var(--success-bg);
+      border: 1px solid var(--success-border);
       border-radius: 99px;
-      padding: 4px 12px;
-      font-size: 12px;
-      font-family: 'DM Mono', monospace;
+      padding: 0.2rem 0.75rem;
+      font-size: 0.75rem;
+      font-family: var(--font-data);
       color: var(--success);
       width: fit-content;
       margin-left: auto;
       margin-right: auto;
     }
 
-    .hint { font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+    .hint {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      line-height: 1.5;
+    }
 
-    .divider { height: 1px; background: var(--border); margin: 28px 0; }
+    /* ─── Divider ────────────────────────────────────────────── */
+    .divider {
+      height: 1px;
+      background: var(--border-sub);
+      margin: 1.75rem 0;
+    }
 
+    /* ─── Submit button ──────────────────────────────────────── */
     .btn {
       width: 100%;
-      padding: 14px 24px;
-      background: linear-gradient(135deg, #7c6dfa, #9b6dfa);
+      padding: 0.875rem 1.5rem;
+      background: var(--accent);
       border: none;
-      border-radius: 12px;
-      color: white;
-      font-family: 'Syne', sans-serif;
-      font-size: 14px;
-      font-weight: 700;
-      letter-spacing: 0.3px;
+      border-radius: var(--radius-lg);
+      color: #faf8f5;
+      font-family: var(--font-ui);
+      font-size: 0.9375rem;
+      font-weight: 500;
+      letter-spacing: 0.01em;
       cursor: pointer;
-      position: relative;
-      overflow: hidden;
-      transition: opacity 0.2s, transform 0.1s;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
+      gap: 0.625rem;
+      transition: opacity 0.15s ease, transform 0.1s ease;
     }
 
-    .btn::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, #ffffff20, transparent);
-      opacity: 0;
-      transition: opacity 0.2s;
-    }
-
-    .btn:hover::before { opacity: 1; }
+    .btn:hover  { opacity: 0.88; }
     .btn:active { transform: scale(0.99); }
-    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ─── Progress section ───────────────────────────────────── */
     .progress-section {
       display: none;
-      margin-top: 20px;
-      padding: 20px;
-      background: var(--surface2);
+      margin-top: 1.25rem;
+      padding: 1.125rem 1.25rem;
+      background: var(--surface-sub);
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: var(--radius-lg);
     }
 
     .progress-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 12px;
+      margin-bottom: 0.75rem;
     }
 
     .progress-title {
-      font-family: 'DM Mono', monospace;
-      font-size: 12px;
-      color: var(--muted);
+      font-family: var(--font-data);
+      font-size: 0.7rem;
+      color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.6px;
+      letter-spacing: 0.12em;
     }
 
     .progress-spinner {
-      width: 16px; height: 16px;
-      border: 2px solid #7c6dfa30;
+      width: 14px;
+      height: 14px;
+      border: 1.5px solid var(--border);
       border-top-color: var(--accent);
       border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+      animation: spin 0.75s linear infinite;
     }
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .progress-track { height: 4px; background: var(--border); border-radius: 99px; overflow: hidden; position: relative; }
+    .progress-track {
+      height: 3px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+    }
 
     .progress-fill {
       height: 100%;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      background: var(--accent);
       border-radius: 99px;
       width: 0%;
-      transform-origin: left;
+      transition: width 0.3s var(--ease);
     }
-    .progress-meta { margin-top: 8px; display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
 
-    .progress-note { font-size: 12px; color: var(--muted); margin-top: 8px; }
+    .progress-meta {
+      margin-top: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      font-family: var(--font-data);
+      color: var(--text-muted);
+    }
 
+    .progress-note {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      line-height: 1.5;
+    }
+
+    /* ─── Status box ─────────────────────────────────────────── */
     .status-box {
-      margin-top: 16px;
-      padding: 14px 16px;
-      border-radius: 12px;
-      font-size: 13px;
+      margin-top: 1rem;
+      padding: 0.875rem 1rem;
+      border-radius: var(--radius-lg);
+      font-size: 0.875rem;
       line-height: 1.5;
       display: none;
       align-items: flex-start;
-      gap: 10px;
+      gap: 0.625rem;
     }
 
-    .status-box.info    { background: #7c6dfa12; border: 1px solid #7c6dfa30; color: #a89aff; display: flex; }
-    .status-box.success { background: #4ade8012; border: 1px solid #4ade8030; color: var(--success); display: flex; }
-    .status-box.error   { background: #f8717112; border: 1px solid #f8717130; color: var(--error); display: flex; }
+    .status-box.info {
+      background: var(--info-bg);
+      border: 1px solid var(--info-border);
+      color: var(--info);
+      display: flex;
+    }
+
+    .status-box.success {
+      background: var(--success-bg);
+      border: 1px solid var(--success-border);
+      color: var(--success);
+      display: flex;
+    }
+
+    .status-box.error {
+      background: var(--error-bg);
+      border: 1px solid var(--error-border);
+      color: var(--error);
+      display: flex;
+    }
 
     .status-icon { flex-shrink: 0; margin-top: 1px; }
 
+    /* ─── Footer ─────────────────────────────────────────────── */
     .footer {
-      margin-top: 32px;
+      width: 100%;
+      max-width: 640px;
+      margin-top: 2rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
-      animation: fadeUp 0.6s 0.2s ease both;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      animation: fadeUp 0.5s 0.16s var(--ease) both;
     }
+
+    .footer-stats { display: flex; align-items: center; gap: 1.25rem; }
 
     .footer-stat {
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-size: 12px;
-      color: var(--muted);
+      gap: 0.375rem;
+      font-family: var(--font-data);
+      font-size: 0.7rem;
+      color: var(--text-muted);
     }
 
-    .footer-stat span { font-family: 'DM Mono', monospace; color: var(--accent); }
-    .footer-note { font-size: 11px; color: #ffffff25; font-family: 'DM Mono', monospace; }
+    .footer-brand {
+      font-family: var(--font-display);
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 0.01em;
+    }
 
+    /* ─── Animations ─────────────────────────────────────────── */
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(16px); }
-      to { opacity: 1; transform: none; }
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    /* ─── Focus ──────────────────────────────────────────────── */
+    *:focus-visible {
+      outline: 2px solid var(--accent-ring);
+      outline-offset: 2px;
+    }
+
+    /* ─── Scrollbar ──────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(28,20,16,0.14); border-radius: 3px; }
+    @media (prefers-color-scheme: dark) {
+      ::-webkit-scrollbar-thumb { background: rgba(240,235,227,0.12); }
     }
   </style>
 </head>
 <body>
-<div class="wrapper">
 
-  <div class="header">
-    <div class="badge">GST VERIFICATION TOOL</div>
-    <h1>GST Lookup<br/>by PAN</h1>
-    <p class="subtitle">Fetch GSTIN details for one or more PANs in bulk. Results exported as a structured CSV.</p>
-  </div>
-
-  <div class="card">
-    <div class="card-inner">
-
-      <div class="tab-strip">
-        <button class="tab active" onclick="switchTab('text', this)">
-          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h8"/></svg>
-          Paste PANs
-        </button>
-        <button class="tab" onclick="switchTab('file', this)">
-          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414A1 1 0 0119 9.414V19a2 2 0 01-2 2z"/></svg>
-          Upload File
-        </button>
-      </div>
-
-      <div id="tab-text" class="tab-panel active">
-        <label class="field-label">PAN List</label>
-        <textarea id="pan-input" placeholder="AAACM5586C&#10;AABCS1429B&#10;AABCM1429B&#10;&#10;One PAN per line..."></textarea>
-        <p class="hint">Duplicates removed automatically. Invalid formats flagged in output.</p>
-      </div>
-
-      <div id="tab-file" class="tab-panel">
-        <label class="field-label">Upload File</label>
-        <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
-          <div class="drop-icon">
-            <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#7c6dfa" stroke-width="1.5">
-              <path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
-            </svg>
-          </div>
-          <h3>Drop your file here</h3>
-          <p>Accepts <strong style="color: var(--text)">.csv</strong> (first column = PAN) or <strong style="color: var(--text)">.txt</strong> (one PAN per line)</p>
-          <div class="file-chip" id="file-name"></div>
-          <input type="file" id="file-input" accept=".csv,.txt" onchange="handleFileSelect(event)"/>
-        </div>
-      </div>
-
-      <div class="divider"></div>
-
-      <button class="btn" id="submit-btn" onclick="submitLookup()">
-        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-        </svg>
-        Fetch & Download CSV
+  <!-- Navigation -->
+  <nav class="nav">
+    <a href="https://showcase.varma.ai" class="nav-brand" title="Back to Internal Tools">
+      <span class="nav-brand-name">Varma &amp; Varma</span>
+      <span class="nav-brand-sub">Internal Tools</span>
+    </a>
+    <div class="nav-right">
+      <button class="theme-toggle" id="theme-toggle" title="Toggle theme" onclick="toggleTheme()">
+        <svg id="theme-icon" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"></svg>
       </button>
+      <a href="https://showcase.varma.ai" class="nav-back">
+        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+        </svg>
+        All Tools
+      </a>
+    </div>
+  </nav>
 
-      <div class="progress-section" id="progress-section">
-        <div class="progress-header">
-          <span class="progress-title">Processing PANs</span>
-          <div class="progress-spinner"></div>
+  <div class="wrapper">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="eyebrow">GST Verification Tool</div>
+      <h1>GST Lookup<br/>by PAN</h1>
+      <p class="subtitle">Fetch GSTIN details for one or more PANs in bulk. Results exported as a structured CSV.</p>
+    </div>
+
+    <!-- Main card -->
+    <div class="card">
+      <div class="card-inner">
+
+        <!-- Tab strip -->
+        <div class="tab-strip">
+          <button class="tab active" onclick="switchTab('text', this)">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path d="M4 6h16M4 12h16M4 18h8"/>
+            </svg>
+            Paste PANs
+          </button>
+          <button class="tab" onclick="switchTab('file', this)">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414A1 1 0 0119 9.414V19a2 2 0 01-2 2z"/>
+            </svg>
+            Upload File
+          </button>
         </div>
-        <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
-        <div class="progress-meta"><span id="progress-count">0 / 0</span><span id="progress-percent">0%</span></div>
-        <p class="progress-note">500+ PANs may take 6–12 minutes · 2 concurrent requests · adaptive delay</p>
-      </div>
 
-      <div class="status-box" id="status-box">
-        <span class="status-icon" id="status-icon"></span>
-        <span id="status-msg"></span>
-      </div>
+        <!-- Text input panel -->
+        <div id="tab-text" class="tab-panel active">
+          <label class="field-label" for="pan-input">PAN List</label>
+          <textarea id="pan-input" placeholder="AAACM5586C&#10;AABCS1429B&#10;AABCM1429B&#10;&#10;One PAN per line…"></textarea>
+          <p class="hint">Duplicates removed automatically. Invalid formats flagged in output.</p>
+        </div>
 
+        <!-- File upload panel -->
+        <div id="tab-file" class="tab-panel">
+          <label class="field-label">Upload File</label>
+          <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+            <div class="drop-icon">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" color="var(--accent)">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
+              </svg>
+            </div>
+            <h3>Drop your file here</h3>
+            <p>Accepts <strong>.csv</strong> (first column = PAN) or <strong>.txt</strong> (one PAN per line)</p>
+            <div class="file-chip" id="file-name"></div>
+            <input type="file" id="file-input" accept=".csv,.txt" onchange="handleFileSelect(event)"/>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Submit -->
+        <button class="btn" id="submit-btn" onclick="submitLookup()">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+          </svg>
+          Fetch &amp; Download CSV
+        </button>
+
+        <!-- Progress -->
+        <div class="progress-section" id="progress-section">
+          <div class="progress-header">
+            <span class="progress-title">Processing PANs</span>
+            <div class="progress-spinner"></div>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+          <div class="progress-meta">
+            <span id="progress-count">0 / 0</span>
+            <span id="progress-percent">0%</span>
+          </div>
+          <p class="progress-note">500+ PANs may take 6–12 minutes &middot; 2 concurrent requests &middot; adaptive delay</p>
+        </div>
+
+        <!-- Status -->
+        <div class="status-box" id="status-box">
+          <span class="status-icon" id="status-icon"></span>
+          <span id="status-msg"></span>
+        </div>
+
+      </div>
     </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div class="footer-stats">
+        <div class="footer-stat">
+          <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
+          </svg>
+          Rate limit: 2 req / adaptive
+        </div>
+        <div class="footer-stat">
+          <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+          </svg>
+          No data stored
+        </div>
+      </div>
+      <span class="footer-brand">Varma &amp; Varma</span>
+    </div>
+
   </div>
 
-  <div class="footer">
-    <div class="footer-stat">
-      <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-      Rate limit: <span>2 req / adaptive</span>
-    </div>
-    <div class="footer-stat">
-      <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-      No data stored
-    </div>
-    <div class="footer-note">Varma & Varma Chartered Accountants</div>
-  </div>
+<script>
+  // ── Theme toggle ──────────────────────────────────────────────
+  const MOON = '<path d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z"/>';
+  const SUN  = '<path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-11.314l.707.707m11.314 11.314l.707.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>';
 
-</div>
+  function applyTheme(dark) {
+    document.documentElement.classList.toggle('dark', dark);
+    document.getElementById('theme-icon').innerHTML = dark ? SUN : MOON;
+    localStorage.setItem('vv-dark', dark ? '1' : '0');
+  }
+
+  function toggleTheme() {
+    applyTheme(!document.documentElement.classList.contains('dark'));
+  }
+
+  // Initialise from localStorage, fallback to system preference
+  (function () {
+    const saved = localStorage.getItem('vv-dark');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    applyTheme(saved !== null ? saved === '1' : prefersDark);
+  })();
+</script>
 
 <script>
   let activeTab = 'text';
@@ -511,7 +790,7 @@
   }
 
   function countPANsFromText(text) {
-    return text.split(/\\r?\\n/).map(s => s.trim()).filter(Boolean).length;
+    return text.split(/\r?\n/).map(s => s.trim()).filter(Boolean).length;
   }
 
   function startProgress(total) {
@@ -610,15 +889,13 @@
           updateProgress(processed, totalCount);
         }
 
-        if (carry.trim().length > 0) {
-          lineCount += 1;
-        }
-        const processed = Math.max(0, lineCount - 1);
-        updateProgress(processed, totalCount);
+        if (carry.trim().length > 0) lineCount += 1;
+        updateProgress(Math.max(0, lineCount - 1), totalCount);
         blob = new Blob(chunks, { type: 'text/csv' });
       } else {
         blob = await response.blob();
       }
+
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url; a.download = 'gst_results.csv'; a.click();
